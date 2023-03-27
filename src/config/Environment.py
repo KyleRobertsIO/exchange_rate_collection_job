@@ -4,6 +4,7 @@ from marshmallow import fields, Schema, ValidationError
 from pprint import pprint
 
 from src.enums import JobType
+from src.clients.ExchangeRateHost import BaseCurrency
 
 class LoggerConfig(Schema):
     log_level = fields.String(
@@ -32,6 +33,12 @@ class JobConfig(Schema):
     )
     historical_previous_days = fields.Integer(
         required = False
+    )
+    base_currency = fields.Enum(
+        enum = BaseCurrency, 
+        by_value = True,
+        required = True,
+        error_messages = { "required": "job.base_currency is required to launch" }
     )
 
 class PostgresConfig(Schema):
@@ -74,7 +81,8 @@ def _build_raw_config() -> dict:
         "job": {
             "type": os.getenv("JOB.TYPE"),
             "historical_end_date": os.getenv("JOB.HISTORICAL_END_DATE"),
-            "historical_previous_days": os.getenv("JOB.HISTORICAL_PREVIOUS_DAYS")
+            "historical_previous_days": os.getenv("JOB.HISTORICAL_PREVIOUS_DAYS"),
+            "base_currency": os.getenv("JOB.BASE_CURRENCY")
         },
         "logger": {
             "log_level": os.getenv("LOGGER.LOG_LEVEL"),

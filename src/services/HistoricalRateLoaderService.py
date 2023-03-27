@@ -6,7 +6,7 @@ from typing import List
 from src.entities.ExchangeRate import ExchangeRate
 from src.repositories.ExchangeRateRepo import ExchangeRateRepo
 from src.clients.ExchangeRateHost import (
-    ExchangeRateHostProxy, 
+    IExchangeRateHost,
     BaseCurrency,
     DatedRates
 )
@@ -26,17 +26,14 @@ class RatesDuplicationError(Exception):
 class HistoricalReateLoaderService:
 
     def __init__(
-        self, logger: Logger, repo: ExchangeRateRepo
+        self, 
+        logger: Logger, 
+        repo: ExchangeRateRepo, 
+        client: IExchangeRateHost
     ):
         self._logger = logger
         self._repo = repo
-
-    def _create_client(self) -> ExchangeRateHostProxy:
-        client = ExchangeRateHostProxy(
-            base_currency = BaseCurrency.USD, 
-            logger = self._logger
-        )
-        return client
+        self._client = client
 
     def _cast_entity_collection(
         self, collection: List[DatedRates]
@@ -79,7 +76,7 @@ class HistoricalReateLoaderService:
 
     def _collect_historical_rates(
         self, 
-        client: ExchangeRateHostProxy, 
+        client: IExchangeRateHost, 
         start_date: datetime, 
         end_date: datetime
     ) -> List[DatedRates]:
@@ -98,9 +95,8 @@ class HistoricalReateLoaderService:
     def load(self, end_date: datetime, previous_days: int):
         time_delta = timedelta(days = previous_days)
         start_date: datetime = end_date - time_delta
-        client = self._create_client()
         rates_collection: List[DatedRates] = self._collect_historical_rates(
-            client = client,
+            client = self._client,
             start_date = start_date,
             end_date = end_date
         )

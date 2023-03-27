@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 class BaseCurrency(Enum):
     '''
-    Availiable currency types to use a base for `ExchangeRateHost` base currency.
+    Availiable currency types to use as a base for `ExchangeRateHost` base currency.
     '''
     USD = "USD"
     CAD = "CAD"

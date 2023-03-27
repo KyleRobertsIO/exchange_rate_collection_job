@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from src.clients.ExchangeRateHost import (
-    ExchangeRateHostProxy, 
+    IExchangeRateHost, 
     BaseCurrency, 
     DatedRates
 )
@@ -33,25 +33,23 @@ class RatesDuplicationError(Exception):
 class NightlyRateCollectorService:
 
     def __init__(
-        self, repo: ExchangeRateRepo, logger: Logger
+        self, 
+        repo: ExchangeRateRepo, 
+        logger: Logger, 
+        client: IExchangeRateHost
     ):
         self._repo = repo
         self._logger = logger
+        self._client = client
 
     def _handle_missing_rates(
-        self, rates: DatedRates, client: ExchangeRateHostProxy
+        self, rates: DatedRates, client: IExchangeRateHost
     ):
         if rates == None:
             raise RatesClientCollectionError(
                 client = client,
                 func = client.get_rate_for_date
             )
-
-    def _create_client(self) -> ExchangeRateHostProxy:
-        return ExchangeRateHostProxy(
-            logger = self._logger,
-            base_currency = BaseCurrency.USD 
-        )
 
     def _insert_record(self, entity: ExchangeRate):
         try:
@@ -68,10 +66,14 @@ class NightlyRateCollectorService:
 
     def save_rate(self, target_date: datetime):
         source: str = "EXCHANGE_RATE_HOST"
-        self._check_for_duplicates(date = target_date, source = source)
-        client = self._create_client()
-        dated_rates: DatedRates = client.get_rate_for_date(date = target_date)
-        self._handle_missing_rates(rates = dated_rates, client = client)
+        try:
+            self._check_for_duplicates(date = target_date, source = source)
+        except RatesDuplicationError as dup_err:
+            self._logger.warning("Duplicate rates record existing in database. {0}".format(
+                str(dup_err.args)
+            ))
+        dated_rates: DatedRates = self._client.get_rate_for_date(date = target_date)
+        self._handle_missing_rates(rates = dated_rates, client = self._client)
         entity = ExchangeRate(
             date = dated_rates.date,
             rates = dated_rates.rates,

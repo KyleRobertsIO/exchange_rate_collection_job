@@ -4,10 +4,12 @@ from datetime import datetime, timedelta
 
 from src.config.Environment import get_environment_config
 from src.database import PostgresDatabase, SQLConnectionDetails
-
 from src.enums import JobType
 from src.repositories.ExchangeRateRepo import ExchangeRateRepo
-
+from src.clients.ExchangeRateHost import (
+    ExchangeRateHostProxy, 
+    BaseCurrency
+)
 from src.services.NightlyRateCollectorService import NightlyRateCollectorService
 from src.services.HistoricalRateLoaderService import HistoricalReateLoaderService
 
@@ -38,12 +40,19 @@ postgres = PostgresDatabase(connection_details = sql_details)
 
 exchange_rate_repo = ExchangeRateRepo(sql_db = postgres)
 
+client_proxy = ExchangeRateHostProxy(
+    logger = logger,
+    base_currency = env_config["job"]["base_currency"]
+)
+
 def run_nightly_data_collection():
     logger.info("Starting Nightly Exchange Rate Collection Job")
     curr_timestamp = datetime.now()
     yesterday_timestamp = curr_timestamp - timedelta(days = 1)
     nightly_collector = NightlyRateCollectorService(
-        repo = exchange_rate_repo, logger = logger
+        repo = exchange_rate_repo, 
+        logger = logger,
+        client = client_proxy
     )
     nightly_collector.save_rate(target_date = yesterday_timestamp)
     logger.info("Completed Nightly Exchange Rate Collection Job")
@@ -51,7 +60,9 @@ def run_nightly_data_collection():
 def run_historical_data_collection():
     logger.info("Starting Historical Exchange Rate Collection Job")
     historical_collector = HistoricalReateLoaderService(
-        logger = logger, repo = exchange_rate_repo
+        logger = logger, 
+        repo = exchange_rate_repo,
+        client = client_proxy
     )
     historical_collector.load(
         end_date = env_config["job"]["historical_end_date"],
