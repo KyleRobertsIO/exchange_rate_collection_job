@@ -1,0 +1,7 @@
+requests
+marshmallow
+python-dotenv
+
+# Database
+psycopg2-binary
+sqlalchemy
