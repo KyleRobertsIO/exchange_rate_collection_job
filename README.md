@@ -26,6 +26,9 @@ python main
 
 ## **Postgres Table**
 
+Use the below create table statement inside of your target Postgres instance
+to properly integrate with the job code.
+
 ```sql
 CREATE TABLE IF NOT EXISTS dbo.exchange_rates (
     id SERIAL PRIMARY KEY NOT NULL,
