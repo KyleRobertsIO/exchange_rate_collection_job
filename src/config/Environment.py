@@ -3,6 +3,8 @@ import os
 from marshmallow import fields, Schema, ValidationError
 from pprint import pprint
 
+from src.enums import JobType
+
 class LoggerConfig(Schema):
     log_level = fields.String(
         required = True,
@@ -11,6 +13,25 @@ class LoggerConfig(Schema):
     name = fields.String(
         required = True,
         allow_none = False
+    )
+    json_file_path = fields.String(
+        required = True,
+        allow_none = False
+    )
+
+class JobConfig(Schema):
+    type = fields.Enum(
+        enum = JobType, 
+        by_value = True,
+        required = True,
+        error_messages = { "required": "job.type is required to launch" }
+    )
+    historical_end_date = fields.Date(
+        required = False,
+        allow_none = False
+    )
+    historical_previous_days = fields.Integer(
+        required = False
     )
 
 class PostgresConfig(Schema):
@@ -37,6 +58,7 @@ class PostgresConfig(Schema):
 class EnvironmentVarSchema(Schema):
     postgres = fields.Nested(PostgresConfig())
     logger = fields.Nested(LoggerConfig())
+    job = fields.Nested(JobConfig())
 
 def _handle_schema_validation(raw_config: dict) -> dict:
     try:
@@ -49,9 +71,15 @@ def _handle_schema_validation(raw_config: dict) -> dict:
 
 def _build_raw_config() -> dict:
     return {
+        "job": {
+            "type": os.getenv("JOB.TYPE"),
+            "historical_end_date": os.getenv("JOB.HISTORICAL_END_DATE"),
+            "historical_previous_days": os.getenv("JOB.HISTORICAL_PREVIOUS_DAYS")
+        },
         "logger": {
             "log_level": os.getenv("LOGGER.LOG_LEVEL"),
-            "name": os.getenv("LOGGER.NAME")
+            "name": os.getenv("LOGGER.NAME"),
+            "json_file_path": os.getenv("LOGGER.JSON_FILE_PATH")
         },
         "postgres": {
             "host": os.getenv("POSTGRES.HOST"),
