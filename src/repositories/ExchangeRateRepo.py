@@ -12,12 +12,6 @@ class IExchangeRateRepo(metaclass = ABCMeta):
 
     def insert_exchange_rate(entity: ExchangeRate):
         pass
-    
-    # def insert_rates(entities: List[ExchangeRate]):
-    #     pass
-
-    # def merge_exchange_rates():
-    #     pass
 
     def if_exists_by_date_and_source() -> int:
         pass
