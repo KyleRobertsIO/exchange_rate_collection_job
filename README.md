@@ -2,7 +2,7 @@
 
 This small python application leverages the free 
 web service [exchangerate.host](https://exchangerate.host/)
-for collect exchanges rates for a given global currency.
+for collecting exchanges rates for a given global currency.
 
 The job code currently only supports Postgres as a target database
 for save the data.
