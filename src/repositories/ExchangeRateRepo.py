@@ -1,10 +1,3 @@
-# from src.PostgresDatabase import PostgresConnection
-# from src.exchange.entities import ExchangeRateHostRate
-# import json
-# from datetime import date
-# from typing import List
-# from psycopg2.extras import execute_values
-
 import json
 from abc import ABCMeta
 from typing import List
@@ -52,67 +45,3 @@ class ExchangeRateRepo(IExchangeRateRepo):
             return result[0].get("count")
         except Exception as query_err:
             raise DatabaseQueryError(query_err.args)
-
-# class ExchangeRateRepo:
-#     def __init__(self, conn: PostgresConnection):
-#         self._conn = conn
-#         self._schemaName = "dbo"
-#         self._tableName = "exchange_rates"
-    
-#     def insertRate(self, entity: ExchangeRateHostRate):
-#         cursor = self._conn.getCursor()
-#         query: str = f"""
-#         INSERT INTO {self._schemaName}.{self._tableName}
-#         (date, rates, source)
-#         VALUES (%s, %s, %s)
-#         """
-#         cursor.execute(
-#             query = query,
-#             vars = (entity.date, json.dumps(entity.rates), entity.source)
-#         )
-#         self._conn.commit()
-
-#     def _tupleExchangeRateHostRate(self, collection: List[ExchangeRateHostRate]) -> List[tuple]:
-#         tupleCollection: List[tuple] = []
-#         for e in collection:
-#             tupleCollection.append((
-#                 e.date,
-#                 json.dumps(e.rates),
-#                 e.source
-#             ))
-#         return tupleCollection
-
-#     def mergeExchangeRates(self):
-#         cursor = self._conn.getCursor()
-#         query: str = "CALL staging.mergeExchangeRates()"
-#         cursor.execute(query = query)
-#         self._conn.commit()
-
-#     def insertRates(self, collection: List[ExchangeRateHostRate]):
-#         cursor = self._conn.getCursor()
-#         query: str = f"""
-#         INSERT INTO staging.{self._tableName}
-#         (date, rates, source)
-#         VALUES %s
-#         """
-#         execute_values(
-#             cur = cursor, 
-#             sql = query, 
-#             argslist = self._tupleExchangeRateHostRate(collection)
-#         )
-#         self._conn.commit()
-
-#     def ifExistsByDateAndSource(self, date: date, source: str) -> int:
-#         cursor = self._conn.getCursor()
-#         query: str = f"""
-#         SELECT COUNT(date)
-#         FROM {self._schemaName}.{self._tableName}
-#         WHERE date = %s
-#         AND source = %s
-#         """
-#         cursor.execute(
-#             query = query,
-#             vars = (date, source)
-#         )
-#         count: int = cursor.fetchone()[0]
-#         return count
