@@ -1,3 +1,4 @@
+import pytz
 from dotenv import load_dotenv
 from logging import Logger
 from datetime import datetime, timedelta
@@ -6,10 +7,7 @@ from src.config.Environment import get_environment_config
 from src.database import PostgresDatabase, SQLConnectionDetails
 from src.enums import JobType
 from src.repositories.ExchangeRateRepo import ExchangeRateRepo
-from src.clients.ExchangeRateHost import (
-    ExchangeRateHostProxy, 
-    BaseCurrency
-)
+from src.clients.ExchangeRateHost import ExchangeRateHostProxy
 from src.services.NightlyRateCollectorService import NightlyRateCollectorService
 from src.services.HistoricalRateLoaderService import HistoricalReateLoaderService
 
@@ -21,7 +19,9 @@ from src.logger import (
 
 load_dotenv()
 env_config: dict = get_environment_config()
-    
+
+timezone = env_config["job"]["timezone"]
+
 logger = Logger(name = env_config["logger"]["name"])
 logger.setLevel(env_config["logger"]["log_level"])
 logger.addHandler(build_stdout_logging_handler())
@@ -47,7 +47,8 @@ client_proxy = ExchangeRateHostProxy(
 
 def run_nightly_data_collection():
     logger.info("Starting Nightly Exchange Rate Collection Job")
-    curr_timestamp = datetime.now()
+    timezone_obj = pytz.timezone('US/Eastern')
+    curr_timestamp = timezone_obj.fromutc(datetime.now())
     yesterday_timestamp = curr_timestamp - timedelta(days = 1)
     nightly_collector = NightlyRateCollectorService(
         repo = exchange_rate_repo, 

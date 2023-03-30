@@ -40,6 +40,10 @@ class JobConfig(Schema):
         required = True,
         error_messages = { "required": "job.base_currency is required to launch" }
     )
+    timezone = fields.String(
+        required = True,
+        allow_none = False
+    )
 
 class PostgresConfig(Schema):
     host = fields.String(
@@ -82,7 +86,8 @@ def _build_raw_config() -> dict:
             "type": os.getenv("JOB.TYPE"),
             "historical_end_date": os.getenv("JOB.HISTORICAL_END_DATE"),
             "historical_previous_days": os.getenv("JOB.HISTORICAL_PREVIOUS_DAYS"),
-            "base_currency": os.getenv("JOB.BASE_CURRENCY")
+            "base_currency": os.getenv("JOB.BASE_CURRENCY"),
+            "timezone": os.getenv("JOB.TIMEZONE")
         },
         "logger": {
             "log_level": os.getenv("LOGGER.LOG_LEVEL"),
